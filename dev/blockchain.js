@@ -13,7 +13,8 @@ class Blockchain {
       timestamp: Date.now(),
       transactions: this.pendingTransactions,
       nonce: nonce,
-      hash: hash
+      hash: hash,
+      previousBlockHash: previousBlockHash
     }
 
     this.pendingTransactions = []
@@ -50,7 +51,6 @@ class Blockchain {
     while (hash.substring(0, 4) !== '0000') {
       nonce++
       hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
-      console.log(hash)
     }
 
     return nonce
