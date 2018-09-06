@@ -4,6 +4,7 @@ class Blockchain {
   constructor () {
     this.chain = []
     this.pendingTransactions = []
+    this.createNewBlock(1993, 'pepe', 'thefrog')
   }
 
   createNewBlock (nonce, previousBlockHash, hash) {
@@ -40,6 +41,19 @@ class Blockchain {
   hashBlock (previousBlockHash, currentBlockData, nonce) {
     const dataAsString = previousBlockHash + nonce.toString() + JSON.stringify(currentBlockData)
     return sha256(dataAsString)
+  }
+
+  proofOfWork (previousBlockHash, currentBlockData) {
+    let nonce = 0
+    let hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
+
+    while (hash.substring(0, 4) !== '0000') {
+      nonce++
+      hash = this.hashBlock(previousBlockHash, currentBlockData, nonce)
+      console.log(hash)
+    }
+
+    return nonce
   }
 }
 
