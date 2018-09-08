@@ -174,7 +174,8 @@ app.post('/receive-new-block', function(req, res){
     })
   }else{
     res.json({
-      note: 'New block rejected.'
+      note: 'New block rejected.',
+      newBlock: newBlock
     })
   }
 })
