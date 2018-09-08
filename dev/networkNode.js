@@ -26,12 +26,13 @@ app.post('/transaction', function (req, res) {
 app.post('/register-and-broadcast-node', function (req, res) {
   const newNodeUrl = req.body.newNodeUrl
 
+  // register new node with this node
   if (coin.networkNodes.indexOf(newNodeUrl) === -1) {
     coin.networkNodes.push(newNodeUrl)
   }
 
   const regNodesPromises = []
-
+  // creating an array of requests to register-node endpoint to register new node with all other nodes in network
   coin.networkNodes.forEach(networkNodeUrl => {
     const requestOptions = {
       uri: networkNodeUrl + '/register-node',
@@ -39,23 +40,51 @@ app.post('/register-and-broadcast-node', function (req, res) {
       body: { newNodeUrl: newNodeUrl },
       json: true
     }
-
+    // pushing our new request to request array
     regNodesPromises.push(rp(requestOptions))
   })
 
+  // executing all our requests in array
   Promise.all(regNodesPromises).then(data => {
+    const bulkRegisterOptions = {
+      uri: newNodeUrl + '/register-nodes-bulk',
+      method: 'POST',
+      body: { allNetworkNodes: [...coin.networkNodes, coin.currentNodeUrl] },
+      json: true
+    }
 
+    return rp(bulkRegisterOptions)
   })
+    .then(data => {
+      res.json({ node: 'New node registered with netrwork successfully.' })
+    })
 })
 
 // accepts the newnode to be registered and does NOT broadcast it again!
 app.post('/register-node', function (req, res) {
+  const newNodeUrl = req.body.newNodeUrl
+  const nodeNotAlredyPresent = (coin.networkNodes.indexOf(newNodeUrl) === -1)
+  const notCurrentNode = coin.currentNodeUrl !== newNodeUrl
 
+  if (nodeNotAlredyPresent && notCurrentNode) {
+    coin.networkNodes.push(newNodeUrl)
+  }
+  res.json({ note: 'New node registered successfully.' })
 })
 
 // register multiple nodes at once
 app.post('/register-nodes-bulk', function (req, res) {
+  const allNetworkNodes = req.body.allNetworkNodes
 
+  allNetworkNodes.forEach(networkNodeUrl => {
+    const nodeNotAlredyPresent = (coin.networkNodes.indexOf(networkNodeUrl) === -1)
+    const notCurrentNode = coin.currentNodeUrl !== networkNodeUrl
+    if (nodeNotAlredyPresent && notCurrentNode) {
+      coin.networkNodes.push(networkNodeUrl)
+    }
+  })
+
+  res.json({ note: 'Bilkl registration successful.' })
 })
 
 app.get('/mine', function (req, res) {
